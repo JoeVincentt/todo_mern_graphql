@@ -11,6 +11,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import Checkbox from "@material-ui/core/Checkbox";
 import IconButton from "@material-ui/core/IconButton";
 import DeleteForever from "@material-ui/icons/DeleteForever";
+import Form from "./Form";
 
 const TodosQuery = gql`
   {
@@ -31,6 +32,16 @@ const UpdateMutation = gql`
 const RemoveMutation = gql`
   mutation($id: ID!) {
     removeTodo(id: $id)
+  }
+`;
+
+const CreateTodoMutation = gql`
+  mutation($text: String!) {
+    createTodo(text: $text) {
+      id
+      text
+      complete
+    }
   }
 `;
 
@@ -57,7 +68,6 @@ class App extends Component {
 
   //remove todo
   removeTodo = async todo => {
-    console.log(todo.id);
     await this.props.removeTodo({
       variables: {
         id: todo.id
@@ -67,6 +77,23 @@ class App extends Component {
         const data = store.readQuery({ query: TodosQuery });
         // Add our comment from the mutation to the end.
         data.todos = data.todos.filter(x => x.id !== todo.id);
+        // Write our data back to the cache.
+        store.writeQuery({ query: TodosQuery, data });
+      }
+    });
+  };
+
+  createTodo = async text => {
+    console.log(text);
+    await this.props.createTodo({
+      variables: {
+        text
+      },
+      update: (store, { data: { createTodo } }) => {
+        // Read the data from our cache for this query.
+        const data = store.readQuery({ query: TodosQuery });
+        // Add our comment from the mutation to the end.
+        data.todos.unshift(createTodo);
         // Write our data back to the cache.
         store.writeQuery({ query: TodosQuery, data });
       }
@@ -85,6 +112,7 @@ class App extends Component {
       <div style={{ display: "flex" }}>
         <div style={{ margin: "auto", width: 400 }}>
           <Paper elevation={1}>
+            <Form submit={this.createTodo} />
             <List>
               {todos.map(todo => (
                 <ListItem
@@ -118,5 +146,6 @@ class App extends Component {
 export default compose(
   graphql(RemoveMutation, { name: "removeTodo" }),
   graphql(UpdateMutation, { name: "updateTodo" }),
+  graphql(CreateTodoMutation, { name: "createTodo" }),
   graphql(TodosQuery)
 )(App);
