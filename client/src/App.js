@@ -27,12 +27,16 @@ const UpdateMutation = gql`
     updateTodo(id: $id, complete: $complete)
   }
 `;
-console.log(UpdateMutation);
+
+const RemoveMutation = gql`
+  mutation($id: ID!) {
+    removeTodo(id: $id)
+  }
+`;
 
 class App extends Component {
   //Update toDo
   updateTodo = async todo => {
-    console.log(todo.id, todo.complete);
     await this.props.updateTodo({
       variables: {
         id: todo.id,
@@ -42,7 +46,7 @@ class App extends Component {
         // Read the data from our cache for this query.
         const data = store.readQuery({ query: TodosQuery });
         // Add our comment from the mutation to the end.
-        data.todos.map(x =>
+        data.todos = data.todos.map(x =>
           x.id === todo.id ? { ...todo, complete: todo.complete } : x
         );
         // Write our data back to the cache.
@@ -52,7 +56,22 @@ class App extends Component {
   };
 
   //remove todo
-  removeTodo = todo => () => {};
+  removeTodo = async todo => {
+    console.log(todo.id);
+    await this.props.removeTodo({
+      variables: {
+        id: todo.id
+      },
+      update: store => {
+        // Read the data from our cache for this query.
+        const data = store.readQuery({ query: TodosQuery });
+        // Add our comment from the mutation to the end.
+        data.todos = data.todos.filter(x => x.id !== todo.id);
+        // Write our data back to the cache.
+        store.writeQuery({ query: TodosQuery, data });
+      }
+    });
+  };
 
   render() {
     const {
@@ -97,6 +116,7 @@ class App extends Component {
 }
 
 export default compose(
+  graphql(RemoveMutation, { name: "removeTodo" }),
   graphql(UpdateMutation, { name: "updateTodo" }),
   graphql(TodosQuery)
 )(App);

@@ -46,7 +46,7 @@ const resolvers = {
       return true;
     },
     removeTodo: async (_, { id }) => {
-      await Todo.findOneAndRemove(id);
+      await Todo.findOneAndRemove({ _id: id });
       return true;
     }
   }
