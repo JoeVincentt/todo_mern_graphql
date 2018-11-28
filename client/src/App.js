@@ -43,7 +43,7 @@ class App extends Component {
         const data = store.readQuery({ query: TodosQuery });
         // Add our comment from the mutation to the end.
         data.todos.map(x =>
-          x.id === todo.id ? { ...todo, complete: !todo.complete } : x
+          x.id === todo.id ? { ...todo, complete: todo.complete } : x
         );
         // Write our data back to the cache.
         store.writeQuery({ query: TodosQuery, data });

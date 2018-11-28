@@ -42,7 +42,7 @@ const resolvers = {
       return todo;
     },
     updateTodo: async (_, { id, complete }) => {
-      await Todo.findOneAndUpdate(id, { complete });
+      await Todo.findOneAndUpdate({ _id: id }, { complete });
       return true;
     },
     removeTodo: async (_, { id }) => {
